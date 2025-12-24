@@ -140,7 +140,8 @@ public class RequestParser {
         PsiParameter bodyParameter = methodParameters.stream()
                 .filter(p -> p.getAnnotation(RequestBody) != null).findFirst().orElse(null);
         if (bodyParameter != null) {
-            bodyProperty = kernelParser.parse(bodyParameter.getType());
+            TypeParseContext context = createTypeParseContext(method, bodyParameter);
+            bodyProperty = kernelParser.parse(context, bodyParameter.getType(), bodyParameter.getType().getCanonicalText());
             String description = paramTags.get(bodyParameter.getName());
             if (StringUtils.isNotEmpty(description)) {
                 bodyProperty.setDescription(description);
@@ -157,7 +158,8 @@ public class RequestParser {
                 PsiParameter parameter = pair.getParameter();
                 PsiAnnotation annotation = pair.getAnnotation();
 
-                Property property = kernelParser.parse(parameter.getType());
+                TypeParseContext context = createTypeParseContext(method, parameter);
+                Property property = kernelParser.parse(context, parameter.getType(), parameter.getType().getCanonicalText());
                 property.setRequired(true);
                 property.setDescription(paramTags.get(parameter.getName()));
                 String name = PsiAnnotationUtils.getStringAttributeValueByAnnotation(annotation,

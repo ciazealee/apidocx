@@ -2,6 +2,7 @@ package io.apidocx.parse.util;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
@@ -63,13 +64,21 @@ public class PsiSwaggerUtils {
     }
 
     public static String getFieldDescription(PsiField psiField) {
+        // 优先级: Swagger 2.x @ApiModelProperty > OpenAPI 3.x @Schema > OpenAPI 3.x @SchemaProperty > 其他
         PsiAnnotation apiModelProperty = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.ApiModelProperty);
         if (apiModelProperty != null) {
             return PsiAnnotationUtils.getStringAttributeValueByAnnotation(apiModelProperty);
         }
+
         PsiAnnotation schema = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.Schema);
         if (schema != null) {
             return PsiAnnotationUtils.getStringAttributeValueByAnnotation(schema, "description");
+        }
+
+        // 检查 @SchemaProperty 注解
+        PsiAnnotation schemaProperty = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.SchemaProperty);
+        if (schemaProperty != null) {
+            return PsiAnnotationUtils.getStringAttributeValueByAnnotation(schemaProperty, "name");
         }
         return null;
     }
@@ -80,15 +89,53 @@ public class PsiSwaggerUtils {
             Boolean hidden = AnnotationUtil.getBooleanAttributeValue(apiModelProperty, "hidden");
             return Boolean.TRUE.equals(hidden);
         }
+
+        // 检查 OpenAPI 3.x @Schema 注解的 hidden 属性
+        PsiAnnotation schema = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.Schema);
+        if (schema != null) {
+            Boolean hidden = AnnotationUtil.getBooleanAttributeValue(schema, "hidden");
+            return Boolean.TRUE.equals(hidden);
+        }
+
+        // 检查 OpenAPI 3.x @SchemaProperty 注解的 hidden 属性
+        PsiAnnotation schemaProperty = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.SchemaProperty);
+        if (schemaProperty != null) {
+            // 检查 @SchemaProperty 的嵌套 @Schema 中的 hidden 属性
+            PsiAnnotationMemberValue schemaValue = schemaProperty.findAttributeValue("schema");
+            if (schemaValue instanceof PsiAnnotation) {
+                Boolean hidden = AnnotationUtil.getBooleanAttributeValue((PsiAnnotation) schemaValue, "hidden");
+                return Boolean.TRUE.equals(hidden);
+            }
+        }
+
         return false;
     }
-        
+
     public static boolean isFieldRequired(PsiField psiField) {
         PsiAnnotation apiModelProperty = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.ApiModelProperty);
         if (apiModelProperty != null) {
             Boolean required = AnnotationUtil.getBooleanAttributeValue(apiModelProperty, "required");
             return Boolean.TRUE.equals(required);
         }
+
+        // 检查 OpenAPI 3.x @Schema 注解的 required 属性
+        PsiAnnotation schema = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.Schema);
+        if (schema != null) {
+            Boolean required = AnnotationUtil.getBooleanAttributeValue(schema, "required");
+            return Boolean.TRUE.equals(required);
+        }
+
+        // 检查 OpenAPI 3.x @SchemaProperty 注解的 required 属性
+        PsiAnnotation schemaProperty = PsiAnnotationUtils.getAnnotation(psiField, SwaggerConstants.SchemaProperty);
+        if (schemaProperty != null) {
+            // 检查 @SchemaProperty 的嵌套 @Schema 中的 required 属性
+            PsiAnnotationMemberValue schemaValue = schemaProperty.findAttributeValue("schema");
+            if (schemaValue instanceof PsiAnnotation) {
+                Boolean required = AnnotationUtil.getBooleanAttributeValue((PsiAnnotation) schemaValue, "required");
+                return Boolean.TRUE.equals(required);
+            }
+        }
+
         return false;
     }
 }

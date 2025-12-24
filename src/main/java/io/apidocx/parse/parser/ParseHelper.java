@@ -228,7 +228,7 @@ public class ParseHelper {
      * 获取字段描述
      */
     public String getFieldDescription(PsiField field, List<Value> values) {
-        // 优先级: @ApiModelProperty > 文档注释标记@description >  文档注释第一行
+        // 优先级: @ApiModelProperty > @Schema > @SchemaProperty > 文档注释标记@description >  文档注释第一行
         String summary = PsiSwaggerUtils.getFieldDescription(field);
 
         PsiDocComment comment = field.getDocComment();

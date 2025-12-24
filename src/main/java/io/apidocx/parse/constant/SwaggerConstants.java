@@ -13,6 +13,7 @@ public interface SwaggerConstants {
     String Tag = "io.swagger.v3.oas.annotations.tags.Tag";
     String Operation = "io.swagger.v3.oas.annotations.Operation";
     String Parameter = "io.swagger.v3.oas.annotations.Parameter";
-    String Schema = "io.swagger.v3.oas.annotations.Schema";
+    String Schema = "io.swagger.v3.oas.annotations.media.Schema";
+    String SchemaProperty = "io.swagger.v3.oas.annotations.media.SchemaProperty";
 
 }
